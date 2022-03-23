@@ -1,0 +1,10 @@
+<% if flash.alert %>
+  <div class="bg-red-600">
+    <%= render 'layouts/wrapped_flash', msg: flash.alert %>
+  </div> 
+<% elsif flash.notice %>
+  <div class="bg-green-600">
+    <%= render 'layouts/wrapped_flash', msg: flash.notice %>
+  </div> 
+<% end %>
+

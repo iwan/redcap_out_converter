@@ -1,16 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html class="h-full bg-zinc-100">
   <head>
     <title>RedcapOutConverter</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%# stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
     <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
   </head>
 
-  <body>
-    <%= yield %>
+  <body class="min-h-full min-w-full flex flex-col">
+    <%= render 'layouts/navbar' %>
+    <%= render 'layouts/flash' %>
+    <%# render 'layouts/header' %>
+
+    <main class="mb-auto">
+      <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="px-4 py-6 sm:px-0">
+          <div class="border-2 border-gray-200 rounded-lg">
+            <%= yield %>
+          </div>
+        </div>
+      </div>
+    </main>
+    <%= render 'layouts/footer' %>
   </body>
 </html>
