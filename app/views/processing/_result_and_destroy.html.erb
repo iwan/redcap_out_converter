@@ -1,0 +1,6 @@
+<p class="text-sm text-gray-400 mb-3">
+	You can now <%= link_to "download the result", rails_blob_path(page.converted_file, disposition: "attachment"), class: "text-gray-600 hover:text-gray-900" %>
+</p>
+<p class="text-sm text-gray-400 inline">
+	Finally you can <%= button_to "delete data and files", page, method: :delete, form_class: "inline", class: "text-sm text-red-600 hover:text-red-700" %>
+</p>

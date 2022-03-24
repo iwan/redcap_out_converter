@@ -1,7 +1,14 @@
-<div class="p-6 flow-root bg-white">
-  <div class="mb-4">The convertion process has been queued...</div>
-  <%= turbo_stream_from @page %>
-  <ul id="pages" class="-mb-8" role="list"></ul>
-  <div id="wait" class="my-16"><%= image_tag("stampede.gif", size: "70x9") %></div>
-  <div id="process-footer" class="mt-12"></div>
+<div class="p-6 flow-root bg-white rounded-lg">
+  <% if @page.completed_at.nil? %>
+      <div class="mb-4">The convertion process has been queued...</div>
+      <%= turbo_stream_from @page %>
+      <ul id="pages" class="-mb-8" role="list"></ul>
+      <div id="wait" class="my-16"><%= image_tag("stampede.gif", size: "70x9") %></div>
+      <div id="process-footer" class="mt-12"></div>
+  <% else %>    
+    <%= render partial: "processing/result_and_destroy", locals: { page: @page } %>
+    <div class="mt-4">
+      <%= render "processing/new_upload" %>      
+    </div>
+  <% end %>
 </div>

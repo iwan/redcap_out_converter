@@ -21,7 +21,7 @@ class FileConverterJob < ApplicationJob
     ensure
       reader.feedback.new_upload
       reader.feedback.remove_waiting_gif
-      # reader.feedback.completed!
+      reader.feedback.completed!
     end
   end
 end

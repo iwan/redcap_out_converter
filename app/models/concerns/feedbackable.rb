@@ -6,6 +6,7 @@ module Feedbackable
   class Feedback
     def initialize(obj)
       @object = obj
+      @object.update(completed_at: nil)
     end
     
     def start(t0)
@@ -31,7 +32,11 @@ module Feedbackable
     def remove_waiting_gif
       @object.broadcast_remove_to(@object, target: "wait")
     end
-
+    
+    def completed!
+      @object.update(completed_at: Time.now)
+    end
+    
     private
     
     def elapsed_time(t0)

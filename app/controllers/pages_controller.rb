@@ -1,5 +1,5 @@
 class PagesController < ApplicationController
-  # before_action :print_page_ids
+  before_action :fit_session_page_ids, only: :show
   
   def new
   end
@@ -20,7 +20,7 @@ class PagesController < ApplicationController
   def show
     @page = Page.find_by id: params[:id]
     if @page && session[:page_ids]&.include?(@page.id)
-      FileConverterJob.set(wait: 1.second).perform_later @page
+      FileConverterJob.set(wait: 1.second).perform_later(@page) if @page.completed_at.nil?
     else
       redirect_to new_page_path, alert: "Sorry the page was not found."
     end
@@ -47,5 +47,11 @@ class PagesController < ApplicationController
 
     def print_page_ids
       puts "session[:page_ids]: #{session[:page_ids].inspect}"  
+    end
+    
+    def fit_session_page_ids
+      puts session[:page_ids].inspect
+      session[:page_ids] = Page.where(id: session[:page_ids]).pluck(:id)      
+      puts session[:page_ids].inspect
     end
 end
