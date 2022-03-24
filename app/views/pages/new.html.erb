@@ -8,7 +8,8 @@
             It may happen that you have designed a tool organized over several visits with the same traits. When you export the collected data each row will report a single visit, but maybe that's not the output you want.
           </p>
           <p class="text-zinc-600 text-base font-normal mb-4">
-            The script takes the file you exported from REDCap and converts it into a new format in which each line corresponds to a single patient / participant and the multiple visits are organized side by side.         
+            The script takes the file you exported from REDCap and converts it into a new format in which each line corresponds to a single patient / participant and the multiple visits are organized side by side.
+            <span class="text-indigo-500">Click the image below to see how data is transformed.</span>
           </p>
           <div class="mb-6" data-controller="modal" data-modal-allow-background-close="true">
             <%= link_to '#', data: { action: 'click->modal#open' } do %>
@@ -73,7 +74,7 @@
               </svg>
               <div class="flex text-sm text-gray-600">
                 <p class="click-or-drag" data-uppy-target="clickOrDrag">
-                  Click or drag and drop to upload
+                  Click or drag and drop
                 </p>                
                 <%= f.file_field :original_file, accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv", class: "sr-only", required: true, data: { "uppy-target": "input", "action": "change->uppy#inputChange click->uppy#inputClick" } %>
               </div>

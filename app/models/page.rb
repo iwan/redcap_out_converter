@@ -1,4 +1,4 @@
 class Page < ApplicationRecord
-  include Broadcastable
+  include Feedbackable
 end
 

@@ -4,26 +4,29 @@ require 'csv'
 module RedcapExport
 
   class CsvReader
+    attr_reader :feedback
+    
     def initialize(object, t0=Time.now)
       @object   = object
       @t0       = t0
+      @feedback = object.init_feedback
 
       @subject_column = 0
       @visit_column = 1
   
-      @object.start(@t0)
-
-
+      @feedback.start(@t0)
+    end
+    
+    
+    def start
       read
-      @object.info(@t0, "CSV readed")
-
+      @feedback.info(@t0, "CSV readed")
+      
       @subjects  = @content.keys.map{|row| row[@subject_column]}.uniq
       @max_visit = @content.keys.map{|row| row[@visit_column].to_i}.max
-
+      
       @repeated_head = @header[2..-1]
       @repeated_size = @repeated_head.size
-
-      # ap @content 
     end
 
 
@@ -31,7 +34,7 @@ module RedcapExport
       row_sep = "\n"
       col_sep = "\t"
       sleep(1.2)
-      @object.info(@t0, "Parsing...")
+      @feedback.info(@t0, "Parsing...")
       sleep(2.3)
 
 
@@ -60,7 +63,7 @@ module RedcapExport
         content_type: 'text/csv'
       )
 
-      @object.finished(@t0)
+      @feedback.finished(@t0)
 
       # @object.info("Comversion successfully completed!", t0: @t0)
       # path = Rails.application.routes.url_helpers.rails_blob_path(@object.converted_file, only_path: true)
