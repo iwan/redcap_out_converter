@@ -26,8 +26,11 @@ By default REDCap export data of repeated events (eg patients follow ups) on sin
 ## Articles
 
 https://rubydoc.org/github/hotwired/turbo-rails/main/Turbo%2FStreamsHelper:turbo_stream_from
+
 https://www.honeybadger.io/blog/chat-app-rails-actioncable-turbo/
+
 https://www.colby.so/posts/turbo-streams-on-rails
+
 https://turbo.hotwired.dev/handbook/streams
 
 
