@@ -90,6 +90,7 @@ GEM
       reline (>= 0.2.7)
     digest (3.1.0)
     erubi (1.10.0)
+    foreman (0.87.2)
     globalid (1.0.0)
       activesupport (>= 5.0)
     i18n (1.10.0)
@@ -226,6 +227,7 @@ DEPENDENCIES
   bootsnap
   capybara
   debug
+  foreman
   jbuilder
   jsbundling-rails
   puma (~> 5.0)
@@ -244,7 +246,7 @@ DEPENDENCIES
   webdrivers
 
 RUBY VERSION
-   ruby 3.1.0p0
+   ruby 3.1.1p18
 
 BUNDLED WITH
    2.3.5
