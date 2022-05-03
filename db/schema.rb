@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_03_24_143055) do
+ActiveRecord::Schema[7.0].define(version: 2022_05_02_201558) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -44,6 +44,11 @@ ActiveRecord::Schema[7.0].define(version: 2022_03_24_143055) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "completed_at"
+    t.integer "patient_col", default: 0
+    t.integer "event_col", default: 1
+    t.string "base_traits_identifier"
+    t.string "baseline_intervals"
+    t.string "follow_up_intervals"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

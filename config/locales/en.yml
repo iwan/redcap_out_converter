@@ -31,3 +31,12 @@
 
 en:
   hello: "Hello world"
+
+  helpers:
+    label:
+      page:
+        patient_col: Patient column
+        event_col: Event column
+        base_traits_identifier: Baseline identifier
+        baseline_intervals: Baseline intervals
+        follow_up_intervals: Follow Up intervals

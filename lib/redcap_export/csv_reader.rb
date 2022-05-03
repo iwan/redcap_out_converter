@@ -11,45 +11,61 @@ module RedcapExport
       @t0       = t0
       @feedback = object.init_feedback
 
-      @subject_column = 0
-      @visit_column = 1
-  
       @feedback.start(@t0)
     end
     
     
     def start
+      @patient_column_idx  = @object.patient_col || 0
+      @event_column_idx    = @object.event_col || 1
+      @base_traits_id      = @object.base_traits_identifier # what's the label for the baseline?
+
+      @base_intervals      = decode_intervals(@object.baseline_intervals)
+      @follow_up_intervals = decode_intervals(@object.follow_up_intervals)
+
       read
+
       @feedback.info(@t0, "CSV readed")
       
-      @subjects  = @content.keys.map{|row| row[@subject_column]}.uniq
-      @max_visit = @content.keys.map{|row| row[@visit_column].to_i}.max
-      
-      @repeated_head = @header[2..-1]
-      @repeated_size = @repeated_head.size
+      @patients_label   = @header[@patient_column_idx]
+      @baseline_labels  = @header.values_at(*@base_intervals)
+      @follow_up_labels = @header.values_at(*@follow_up_intervals)
+
+      @bl_no            = @baseline_labels.size
+      @fu_no            = @follow_up_labels.size
+      @traits_no        = @bl_no + @fu_no
+
+      @patients     = @content.keys.map{|row| row[@patient_column_idx]}.uniq.sort # list of patients
+      @events       = @content.keys.map{|row| row[@event_column_idx]}.uniq - [@base_traits_id] # list of events names except baseline
     end
 
 
-    def parse
-      row_sep = "\n"
-      col_sep = "\t"
-      sleep(1.2)
+    def parse(options={}, &block)
+      row_sep = options.fetch(:row_sep, "\n")
+      col_sep = options.fetch(:col_sep, "\t")
+      sleep(0.8)
       @feedback.info(@t0, "Parsing...")
-      sleep(2.3)
+      sleep(1.2)
 
 
       str = CSV.generate(row_sep: row_sep, col_sep: col_sep) do |csv|
-        row = [@header[0]]
-        1.upto(@max_visit) do |n|
-          row += @repeated_head.map{|e| "#{e}_#{n}"}
+        # --- header
+        row = [@patients_label]
+        row += @baseline_labels
+        @events.each do |event|
+          row += @follow_up_labels.map{|e| block_given? ? yield(event, e) : "#{event}/#{e}"}
         end
         csv << row
 
-        @subjects.sort.each do |subject|
+        # --- values
+        @patients.sort.each do |patient|
           row = []
-          row << subject
-          1.upto(@max_visit) do |n|
-            row += @content.fetch([subject, n.to_s], Array.new(@repeated_size, nil))
+          row << patient
+          # baseline
+          row += @content.fetch([patient, @base_traits_id], Array.new(@traits_no, nil)).values_at(*@base_intervals) if @base_traits_id
+          # followups
+          @events.each do |fu|
+            row += @content.fetch([patient, fu], Array.new(@traits_no, nil)).values_at(*@follow_up_intervals)
           end
           csv << row
         end
@@ -78,9 +94,23 @@ module RedcapExport
       content  = CSV.parse(@object.original_file.download, col_sep: "\t")
       @header  = content.shift
       @content = content.map do |row|
-        key = row.shift(2)
+        key = row.values_at(@patient_column_idx, @event_column_idx)
         [key, row]
       end.to_h
+    end
+
+    def decode_intervals(string)
+      result = []
+      string.gsub(/[^0-9\,\-]/, "").split(',').each do |tok|
+        a2 = tok.split("-")
+
+        if a2.size==1
+          result << a2[0].to_i
+        else
+          result += (a2[0]..a2[1]).to_a.map(&:to_i)
+        end
+      end
+      result.compact.uniq
     end
   end
 end

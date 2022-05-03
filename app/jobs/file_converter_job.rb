@@ -15,6 +15,7 @@ class FileConverterJob < ApplicationJob
       reader.parse
 
     rescue Exception => e
+      # puts e.inspect
       reader.feedback.error(t0, e)
       raise e # StandardError.new()
 

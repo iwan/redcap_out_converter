@@ -2,6 +2,12 @@ class PagesController < ApplicationController
   before_action :fit_session_page_ids, only: :show
   
   def new
+    @page = Page.new
+    Page::STORED_ATTRIBUTES.each do |a|
+      @page.write_attribute(a, session[a])
+    end
+    @page.patient_col = 0 if @page.patient_col.blank?
+    @page.event_col = 1 if @page.event_col.blank?
   end
 
   def create
@@ -10,6 +16,9 @@ class PagesController < ApplicationController
       if @page.save
         session[:page_ids] ||= []
         session[:page_ids] << @page.id
+        Page::STORED_ATTRIBUTES.each do |a|
+          session[a] = page_params[a]
+        end
         format.html { redirect_to @page, notice: "The file was successfully loaded." }
       else
         format.html { render :new }
@@ -42,7 +51,7 @@ class PagesController < ApplicationController
   private
     # Never trust parameters from the scary internet, only allow the white list through.
     def page_params
-      params.require(:page).permit(:original_file)
+      params.require(:page).permit(:original_file, :patient_col, :event_col, :base_traits_identifier, :baseline_intervals, :follow_up_intervals)
     end
 
     def print_page_ids
