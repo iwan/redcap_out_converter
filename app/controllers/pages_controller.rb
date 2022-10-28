@@ -3,11 +3,11 @@ class PagesController < ApplicationController
   
   def new
     @page = Page.new
+    @page.patient_col = 1 # if @page.patient_col.blank?
+    @page.event_col = 2   # if @page.event_col.blank?
     Page::STORED_ATTRIBUTES.each do |a|
-      @page.write_attribute(a, session[a])
+      @page.write_attribute(a, session[a]) if session[a]
     end
-    @page.patient_col = 0 if @page.patient_col.blank?
-    @page.event_col = 1 if @page.event_col.blank?
   end
 
   def create

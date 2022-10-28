@@ -86,3 +86,5 @@ gem 'simple_xlsx_reader' # https://github.com/woahdae/simple_xlsx_reader
 gem 'sidekiq'
 
 gem 'foreman'
+
+gem "charlock_holmes", "~> 0.7.7"

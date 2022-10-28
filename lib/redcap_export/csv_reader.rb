@@ -1,11 +1,15 @@
 require 'csv'
+require 'charlock_holmes'
 # require 'awesome_print'
 
 module RedcapExport
 
   class CsvReader
     attr_reader :feedback
-    
+
+    ROWS_SEP = { cr: "\r", lf: "\n", crlf: "\r\n" }
+    COLS_SEP = { tab: "\t", comma: ",", semicolon: ";" }
+
     def initialize(object, t0=Time.now)
       @object   = object
       @t0       = t0
@@ -16,8 +20,8 @@ module RedcapExport
     
     
     def start
-      @patient_column_idx  = @object.patient_col || 0
-      @event_column_idx    = @object.event_col || 1
+      @patient_column_idx  = (@object.patient_col || 1)-1
+      @event_column_idx    = (@object.event_col || 2)-1
       @base_traits_id      = @object.base_traits_identifier # what's the label for the baseline?
 
       @base_intervals      = decode_intervals(@object.baseline_intervals)
@@ -89,8 +93,17 @@ module RedcapExport
 
     private
 
+
+
     def read
       # https://stackoverflow.com/questions/48749767/rails-read-csv-file-data-with-active-storage
+      file_content = @object.original_file.download
+      detector = CharlockHolmes::EncodingDetector.new
+      detection = detector.detect(file_content)
+      utf8_encoded_content = CharlockHolmes::Converter.convert file_content, detection[:encoding], 'UTF-8'
+      options = detect_rows_and_columns_separators(utf8_encoded_content)
+
+      content  = CSV.parse(utf8_encoded_content, **options)
       content  = CSV.parse(@object.original_file.download, col_sep: "\t")
       @header  = content.shift
       @content = content.map do |row|
@@ -98,6 +111,69 @@ module RedcapExport
         [key, row]
       end.to_h
     end
+
+    def detect_rows_and_columns_separators(content)
+      result = {}
+      sep = detect_rows_sep(content)
+      if sep != :unknown
+        result[:row_sep] = ROWS_SEP[sep]
+
+        sep = detect_cols_sep(sep, content)
+        if sep # not nil
+          result[:col_sep] = COLS_SEP[sep]
+        end
+      end
+      result
+    end
+
+    def count_rows_sep(content)
+      ROWS_SEP.transform_values{|v| content.split(v).size}
+    end
+
+    def detect_rows_sep(content)
+      rows_count = count_rows_sep(content)
+      threshold = 7
+      cr_vs_lf = 100*(rows_count[:cr]-rows_count[:lf]).abs.to_f/[rows_count[:cr],rows_count[:lf]].max
+      if (cr_vs_lf<=threshold)
+        :crlf
+      elsif (cr_vs_lf>=(100-threshold))
+        if(rows_count[:cr]>rows_count[:lf])
+          :cr
+        else
+          :lf
+        end
+      else
+        :unknown
+      end
+    end
+
+    def mean_and_standard_deviation(arr)
+      mean = arr.sum(0.0) / arr.size
+      sum = arr.sum(0.0) { |element| (element - mean) ** 2 }
+      variance = sum / (arr.size - 1)
+      [mean, Math.sqrt(variance)]
+    end
+
+    def detect_cols_sep(rows_sep, content)
+      res = COLS_SEP.transform_values{|v| mean_and_standard_deviation content.split(ROWS_SEP[rows_sep]).map{|row| row.split(v).size}}
+      # {:tab=>[20.0, 0.0], :comma=>[1.0, 0.0], :semicolon=>[1.0, 0.0]}
+
+      max_mean = 0.0
+      candidate = nil
+      res.each_pair do |sp, values|
+        mean, stdev = values
+        if mean>max_mean
+          max_mean = mean
+          if stdev<0.5 # soglia arbitraria
+            candidate = sp
+          end
+        end
+      end
+      candidate
+    end
+
+
+
 
     def decode_intervals(string)
       result = []
