@@ -102,9 +102,11 @@ module RedcapExport
       detection = detector.detect(file_content)
       utf8_encoded_content = CharlockHolmes::Converter.convert file_content, detection[:encoding], 'UTF-8'
       options = detect_rows_and_columns_separators(utf8_encoded_content)
+      @feedback.info(@t0, "Text encoding: #{detection[:encoding]} (confidence: #{detection[:confidence]}%)")
+      @feedback.info(@t0, "Row separator: #{options[:row_sep].inspect}, column separator: #{options[:col_sep].inspect}")
 
       content  = CSV.parse(utf8_encoded_content, **options)
-      content  = CSV.parse(@object.original_file.download, col_sep: "\t")
+      # content  = CSV.parse(@object.original_file.download, col_sep: "\t")
       @header  = content.shift
       @content = content.map do |row|
         key = row.values_at(@patient_column_idx, @event_column_idx)
@@ -157,6 +159,7 @@ module RedcapExport
     def detect_cols_sep(rows_sep, content)
       res = COLS_SEP.transform_values{|v| mean_and_standard_deviation content.split(ROWS_SEP[rows_sep]).map{|row| row.split(v).size}}
       # {:tab=>[20.0, 0.0], :comma=>[1.0, 0.0], :semicolon=>[1.0, 0.0]}
+      @feedback.info(@t0, res.inspect)
 
       max_mean = 0.0
       candidate = nil
@@ -164,9 +167,10 @@ module RedcapExport
         mean, stdev = values
         if mean>max_mean
           max_mean = mean
-          if stdev<0.5 # soglia arbitraria
-            candidate = sp
-          end
+          candidate = sp
+          # if stdev<0.5 # soglia arbitraria
+          #   candidate = sp
+          # end
         end
       end
       candidate
@@ -186,7 +190,7 @@ module RedcapExport
           result += (a2[0]..a2[1]).to_a.map(&:to_i)
         end
       end
-      result.compact.uniq
+      result.compact.uniq.map{|n| n-1}
     end
   end
 end
