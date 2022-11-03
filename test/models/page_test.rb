@@ -12,6 +12,13 @@
 #  base_traits_identifier :string
 #  baseline_intervals     :string
 #  follow_up_intervals    :string
+#  header_row             :integer          default(0)
+#  content_encoding       :string
+#  rows_separator         :string
+#  columns_separator      :string
+#  ad_content_encoding    :string
+#  ad_rows_separator      :string
+#  ad_columns_separator   :string
 #
 require "test_helper"
 

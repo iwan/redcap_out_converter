@@ -14,10 +14,12 @@ RUN apk --update add --virtual build-dependencies \
                                sqlite-dev \
                                bash \
                                gcompat \
+                               icu-dev \
+                               sqlite-dev \
                                && rm -rf /var/cache/apk/*
 
 # docker build -t iwan/redcap_out_converter .
-# docker build -t iwan/redcap_out_converter:0.5.1-linux-amd64 --platform linux/amd64 .
+# docker build -t iwan/redcap_out_converter:0.5.1-linux-amd64 --platform linux/amd64,linux/arm64 .
 # docker run -p 3003:3003 --name roc iwan/redcap_out_converter
 
 ENV app /app

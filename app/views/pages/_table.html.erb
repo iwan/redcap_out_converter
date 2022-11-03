@@ -1,0 +1,57 @@
+<div class="px-4 sm:px-6 lg:px-8">
+  <div class="mt-8 flex flex-col">
+
+    <% if @reader[:result]==:ok %>
+      <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8" data-controller="annotable">
+        <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-1">
+          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+            <table class="min-w-full divide-y divide-gray-300" id="preview-table">
+              <thead class="bg-gray-50">
+                <tr>
+                  <% @reader[:max_col].times do |i| %>
+                    <% if c=@header[i] %>
+                      <th scope="col" class="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6" data-col="<%= i+1 %>">
+                        <%= c %>    
+                      </th>
+                    <% else %>
+                      <th data-col="<%= i+1 %>">&nbsp;</th>
+                    <% end %>
+                  <% end %>
+                </tr>
+                <tr>
+                  <% @reader[:max_col].times do |i| %>
+                    <th scope="col" class="whitespace-nowrap py-0.5 pl-4 pr-3 text-center text-sm font-semibold text-gray-900 sm:pl-6">
+                      <%= i+1 %>  
+                    </th>
+                  <% end %>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 bg-white">
+                <% @reader[:table].each do |row| %>
+                  <tr>
+                    <% @reader[:max_col].times do |i| %>
+                      <% if c=row[i] %>
+                        <td class="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-500 sm:pl-6" data-col="<%= i+1 %>">
+                          <%= c %>
+                        </td>
+                      <% else %>
+                        <td data-col="<%= i+1 %>">&nbsp;</td>
+                      <% end %>
+                    <% end %>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    <% else %>
+      <div class="text-red-600">
+        ⚠️ There was a problem parsing the CSV file. Try to modify parsing settings.
+      </div>
+
+    <% end %>
+  </div>
+
+</div>

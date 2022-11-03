@@ -1,4 +1,3 @@
-console.log('loading controllers/uppy_controller.js');
 import { Controller } from "@hotwired/stimulus"
 
 // Connects to data-controller="uppy"

@@ -53,6 +53,15 @@
           </div>
         </div>
 
+
+        <% if true %>
+          <%= f.hidden_field :patient_col %>
+          <%= f.hidden_field :event_col %>
+          <%= f.hidden_field :base_traits_identifier %>
+          <%= f.hidden_field :baseline_intervals %>
+          <%= f.hidden_field :follow_up_intervals %>
+
+        <% else %>
         <div>
           <h3 class="text-lg leading-6 font-medium text-gray-900">Options</h3>
           <p class="mt-1 max-w-2xl text-sm text-gray-500">Remember that columns indexes start at one.</p>
@@ -99,10 +108,10 @@
             <p class="mt-2 text-sm text-gray-500">Specifies the list of column indexes of the baseline. For example <code class="bg-gray-200">14-29</code> or <code class="bg-gray-200">14,15-30</code></p>
           </div>
         </div>
-
+        <% end %>
       </div>
       <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
-        <%= f.submit "Convert", class: "inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+        <%= f.submit "Load file", class: "inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
       </div>
     </div>
   <% end %>

@@ -2,7 +2,7 @@ require 'csv'
 require 'charlock_holmes'
 # require 'awesome_print'
 
-module RedcapExport
+# module RedcapExport
 
   class CsvReader
     attr_reader :feedback
@@ -44,9 +44,48 @@ module RedcapExport
     end
 
 
-    def parse(options={}, &block)
-      row_sep = options.fetch(:row_sep, "\n")
-      col_sep = options.fetch(:col_sep, "\t")
+    def preread(first: 16, encoding: nil, row_sep: nil, col_sep: nil) # object is an instance of Page
+      # file_content = @object.original_file.download
+      # detector = CharlockHolmes::EncodingDetector.new
+      # detection = detector.detect(file_content)
+      # utf8_encoded_content = CharlockHolmes::Converter.convert file_content, detection[:encoding], 'UTF-8'
+      # options = detect_rows_and_columns_separators(utf8_encoded_content)
+
+      options1 = {}
+      options1[:row_sep] = RowsSeparator.select(row_sep) if row_sep
+      options1[:col_sep] = ColumnsSeparator.select(col_sep) if col_sep
+
+      utf8_encoded_content, encoding, options = auto_detect(encoding)
+      options.merge! options1
+
+      begin
+        result = :ok
+        content = CSV.parse(utf8_encoded_content, **(options.transform_values(&:char)))
+        table   = content.first(first)
+        max_col = table.map(&:size).max
+
+      rescue StandardError => e
+        result = :parsing_error
+        table = [[]]
+        max_col = nil
+      end
+
+      { result: result, max_col: max_col, table: table, content_encoding: encoding, rows_separator: options[:row_sep], columns_separator: options[:col_sep] }
+    end
+
+    def auto_detect(encoding=nil)
+      @file_content ||= @object.original_file.download
+      detector = CharlockHolmes::EncodingDetector.new
+      detection = detector.detect(@file_content)
+      encoding = encoding || detection[:encoding]
+      utf8_encoded_content = CharlockHolmes::Converter.convert @file_content, encoding, 'UTF-8'
+      [utf8_encoded_content, encoding, detect_rows_and_columns_separators(utf8_encoded_content)] # for example: { row_sep: RowsSeparator::CR, col_sep: ColumnsSeparator::Tab }
+    end
+
+
+    def convert(options={}, &block)
+      row_sep = options.fetch(:rows_sep, RowsSeparator::LF.char)
+      col_sep = options.fetch(:cols_sep, ColumnsSeparator::Tab.char)
       sleep(0.8)
       @feedback.info(@t0, "Parsing...")
       sleep(1.2)
@@ -96,17 +135,27 @@ module RedcapExport
 
 
     def read
+      encoding = @object.content_encoding
+      row_sep  = @object.rows_separator
+      col_sep  = @object.columns_separator
+
       # https://stackoverflow.com/questions/48749767/rails-read-csv-file-data-with-active-storage
-      file_content = @object.original_file.download
-      detector = CharlockHolmes::EncodingDetector.new
-      detection = detector.detect(file_content)
-      utf8_encoded_content = CharlockHolmes::Converter.convert file_content, detection[:encoding], 'UTF-8'
-      options = detect_rows_and_columns_separators(utf8_encoded_content)
-      @feedback.info(@t0, "Text encoding: #{detection[:encoding]} (confidence: #{detection[:confidence]}%)")
-      @feedback.info(@t0, "Row separator: #{options[:row_sep].inspect}, column separator: #{options[:col_sep].inspect}")
+      @file_content ||= @object.original_file.download
+      utf8_encoded_content = CharlockHolmes::Converter.convert @file_content, encoding, 'UTF-8'
+
+      options = {row_sep: ::RowsSeparator.select(row_sep).char, col_sep: ::ColumnsSeparator.select(col_sep).char }
+
+      # detector = CharlockHolmes::EncodingDetector.new
+      # detection = detector.detect(file_content)
+      # utf8_encoded_content = CharlockHolmes::Converter.convert file_content, detection[:encoding], 'UTF-8'
+      # options = detect_rows_and_columns_separators(utf8_encoded_content)
+      # @feedback.info(@t0, "Text encoding: #{detection[:encoding]} (confidence: #{detection[:confidence]}%)")
+      # @feedback.info(@t0, "Row separator: #{options[:rows_sep].inspect}, column separator: #{options[:cols_sep].inspect}")
 
       content  = CSV.parse(utf8_encoded_content, **options)
       # content  = CSV.parse(@object.original_file.download, col_sep: "\t")
+      content.shift(@object.header_row) # throw the first n rows
+
       @header  = content.shift
       @content = content.map do |row|
         key = row.values_at(@patient_column_idx, @event_column_idx)
@@ -114,35 +163,39 @@ module RedcapExport
       end.to_h
     end
 
+
+
     def detect_rows_and_columns_separators(content)
       result = {}
-      sep = detect_rows_sep(content)
-      if sep != :unknown
-        result[:row_sep] = ROWS_SEP[sep]
+      r_sep = detect_rows_sep(content)
+      if r_sep != :unknown
+        result[:row_sep] = r_sep
 
-        sep = detect_cols_sep(sep, content)
-        if sep # not nil
-          result[:col_sep] = COLS_SEP[sep]
+        c_sep = detect_cols_sep(r_sep, content)
+        if c_sep # not nil
+          result[:col_sep] = c_sep
         end
       end
       result
     end
 
     def count_rows_sep(content)
-      ROWS_SEP.transform_values{|v| content.split(v).size}
+      # ROWS_SEP.transform_values{|v| content.split(v).size}
+      RowsSeparator::LIST.map{|sep| [sep, content.split(sep.char).size]}.to_h
     end
 
     def detect_rows_sep(content)
       rows_count = count_rows_sep(content)
       threshold = 7
-      cr_vs_lf = 100*(rows_count[:cr]-rows_count[:lf]).abs.to_f/[rows_count[:cr],rows_count[:lf]].max
+      # cr_vs_lf = 100*(rows_count[:cr]-rows_count[:lf]).abs.to_f/[rows_count[:cr],rows_count[:lf]].max
+      cr_vs_lf = 100*(rows_count[RowsSeparator::CR]-rows_count[RowsSeparator::LF]).abs.to_f/[rows_count[RowsSeparator::CR],rows_count[RowsSeparator::LF]].max
       if (cr_vs_lf<=threshold)
-        :crlf
+        RowsSeparator::CRLF
       elsif (cr_vs_lf>=(100-threshold))
-        if(rows_count[:cr]>rows_count[:lf])
-          :cr
+        if(rows_count[RowsSeparator::CR]>rows_count[RowsSeparator::LF])
+          RowsSeparator::CR
         else
-          :lf
+          RowsSeparator::LF
         end
       else
         :unknown
@@ -157,17 +210,18 @@ module RedcapExport
     end
 
     def detect_cols_sep(rows_sep, content)
-      res = COLS_SEP.transform_values{|v| mean_and_standard_deviation content.split(ROWS_SEP[rows_sep]).map{|row| row.split(v).size}}
+      # res = COLS_SEP.transform_values{|v| mean_and_standard_deviation content.split(ROWS_SEP[rows_sep]).map{|row| row.split(v).size}}
+      res = ColumnsSeparator::LIST.map{|sep| [sep, mean_and_standard_deviation(content.split(rows_sep.char).map{|row| row.split(sep.char).size})]}.to_h
       # {:tab=>[20.0, 0.0], :comma=>[1.0, 0.0], :semicolon=>[1.0, 0.0]}
       @feedback.info(@t0, res.inspect)
 
       max_mean = 0.0
       candidate = nil
-      res.each_pair do |sp, values|
+      res.each_pair do |sep, values|
         mean, stdev = values
         if mean>max_mean
           max_mean = mean
-          candidate = sp
+          candidate = sep
           # if stdev<0.5 # soglia arbitraria
           #   candidate = sp
           # end
@@ -193,4 +247,4 @@ module RedcapExport
       result.compact.uniq.map{|n| n-1}
     end
   end
-end
+# end

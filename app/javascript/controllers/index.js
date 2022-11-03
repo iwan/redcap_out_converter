@@ -4,8 +4,14 @@
 
 import { application } from "./application"
 
-import HelloController from "./hello_controller.js"
+import AnnotableController from "./annotable_controller"
+application.register("annotable", AnnotableController)
+
+import HelloController from "./hello_controller"
 application.register("hello", HelloController)
 
-import UppyController from "./uppy_controller.js"
+import RemoteFormController from "./remote_form_controller"
+application.register("remote-form", RemoteFormController)
+
+import UppyController from "./uppy_controller"
 application.register("uppy", UppyController)

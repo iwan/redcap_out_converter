@@ -1,0 +1,135 @@
+<div class="mt-0">
+
+  <div class="shadow sm:rounded-md sm:overflow-hidden">
+    <div class="px-4 py-5 bg-white space-y-6 sm:p-6">
+
+      <div>
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Table preview</h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">Filename: <span class="text-sky-600"><%= @page.original_file.filename.to_s %></span></p>
+      </div>
+
+
+      <div data-controller="remote-form">
+        <%= form_with model: @page, html: { class: "space-y-6 sm:space-y-5", data: { action: "input->remote-form#submit", 'remote-form-target': 'form', 'turbo-frame': 'preview_table' } } do |f| %>
+
+          <div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:border-t sm:border-gray-200 sm:pt-5">
+            <%= f.label :header_row, class: "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2" %>
+            <div class="mt-1 sm:col-span-2 sm:mt-0">
+              <%= f.select :header_row, (0..3).collect { |p| [ "Row #{p+1}", p ] },{ include_blank: false }, class: "block w-full max-w-lg rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:max-w-xs sm:text-sm" %>
+            </div>
+          </div>
+
+          <% enc_list = [["UTF-8", "UTF-8"], ["Latin1 (ISO-8859-1)", "ISO-8859-1"], ["UTF-16LE", "UTF-16LE"]] %>
+          <% enc_list << [@page.content_encoding, @page.content_encoding] unless enc_list.map(&:last).include?(@page.content_encoding) %>
+          <div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:border-t sm:border-gray-200 sm:pt-5">
+            <%= f.label :content_encoding, class: "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2" %>
+            <div class="mt-1 sm:col-span-2 sm:mt-0">
+              <%= f.select :content_encoding, enc_list,{ include_blank: false }, class: "block w-full max-w-lg rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:max-w-xs sm:text-sm" %>
+              <p class="mt-2 text-sm text-orange-300">Automatically detected: <span class="font-semibold text-orange-400"><%= @page.ad_content_encoding %></span></p>
+            </div>
+          </div>
+
+          <div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:border-t sm:border-gray-200 sm:pt-5">
+            <%= f.label :rows_separator, class: "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2" %>
+            <div class="mt-1 sm:col-span-2 sm:mt-0">
+              <%= f.select :rows_separator, RowsSeparator::LIST.map{|sep| [sep.name, sep.code]},{ include_blank: false }, class: "block w-full max-w-lg rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:max-w-xs sm:text-sm" %>
+              <p class="mt-2 text-sm text-orange-300">Automatically detected: <span class="font-semibold text-orange-400"><%= RowsSeparator.select(@page.ad_rows_separator)&.name || @page.ad_rows_separator %></span> </p>
+            </div>
+          </div>
+
+
+          <div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:border-t sm:border-gray-200 sm:pt-5">
+            <%= f.label :columns_separator, class: "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2" %>
+            <div class="mt-1 sm:col-span-2 sm:mt-0">
+              <%= f.select :columns_separator, ColumnsSeparator::LIST.map{|sep| [sep.name, sep.code]},{ include_blank: false }, class: "block w-full max-w-lg rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:max-w-xs sm:text-sm" %>
+              <p class="mt-2 text-sm text-orange-300">Automatically detected: <span class="font-semibold text-orange-400"><%= ColumnsSeparator.select(@page.ad_columns_separator)&.name || @page.ad_columns_separator %></span></p>
+            </div>
+          </div>
+
+          <%= turbo_frame_tag :preview_table do %>
+            <%= render 'table' %>
+          <% end %>
+
+
+          <div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Options</h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">Remember that columns indexes start at one.</p>
+          </div>
+
+          <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
+            <%= f.label :patient_col, class: "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2" do %>
+              Patient column
+              <div class="inline-block ml-2 w-12 h-6 border-2 border-red-200 rounded-md bg-red-100">&nbsp;</div>
+            <% end %>
+            <div class="mt-1 sm:mt-0 sm:col-span-2">
+              <%= f.number_field :patient_col, min: 1, max: @reader[:max_col], class: "max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md", data: { 'col-color': 'bg-red-100' } %>
+              <p class="mt-2 text-sm text-gray-500">Which column defines the patient or participant ID column?</p>
+            </div>
+          </div>
+
+          <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
+            <%= f.label :event_col, class: "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2" do %>
+              Event/visit column
+              <div class="inline-block ml-2 w-12 h-6 border-2 border-emerald-200 rounded-md bg-emerald-100">&nbsp;</div>
+            <% end %>
+            <div class="mt-1 sm:mt-0 sm:col-span-2">
+              <%= f.number_field :event_col, min: 1, max: @reader[:max_col], class: "max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md", data: { 'col-color': 'bg-emerald-100' } %>
+              <p class="mt-2 text-sm text-gray-500">Which column defines the event ie the 'baseline' or 'follow up' label?</p>
+            </div>
+          </div>
+
+          <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
+            <%= f.label :base_traits_identifier, class: "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2" %>
+            <div class="mt-1 sm:mt-0 sm:col-span-2">
+              <%= f.text_field :base_traits_identifier, class: "max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md" %>
+              <p class="mt-2 text-sm text-gray-500">What name identifies the 'baseline' event? (if necessary leave blank)</p>
+            </div>
+          </div>
+
+          <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
+            <%= f.label :baseline_intervals, class: "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2" do %>
+              Baseline intervals
+              <div class="inline-block ml-2 w-12 h-6 border-2 border-sky-200 rounded-md bg-sky-100">&nbsp;</div>
+            <% end %>
+            <div class="mt-1 sm:mt-0 sm:col-span-2">
+              <%= f.text_field :baseline_intervals, class: "max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md", data: { 'col-color': 'bg-sky-100' } %>
+              <p class="mt-2 text-sm text-gray-500">Specifies the list of column indexes of the baseline. For example <code class="bg-gray-200">2-13</code> or <code class="bg-gray-200">2-8,10,12,13</code> (if necessary leave blank)</p>
+            </div>
+          </div>
+
+          <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
+            <%= f.label :follow_up_intervals, class: "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2" do %>
+              Follow Up intervals
+              <div class="inline-block ml-2 w-12 h-6 border-2 border-violet-200 rounded-md bg-violet-100">&nbsp;</div>
+            <% end %>
+            <div class="mt-1 sm:mt-0 sm:col-span-2">
+              <%= f.text_field :follow_up_intervals, class: "max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md", data: { 'col-color': 'bg-violet-100' } %>
+              <p class="mt-2 text-sm text-gray-500">Specifies the list of column indexes of the followups. For example <code class="bg-gray-200">14-29</code> or <code class="bg-gray-200">14,15-30</code></p>
+            </div>
+          </div>
+
+        <% end %>
+
+      </div>
+
+
+
+
+
+
+
+
+
+    <div class="flex justify-between px-4 py-3 bg-gray-50 text-right sm:px-6">
+      <%= link_to "← Load another file", new_page_path, class: "inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+      <% if @reader[:result]==:ok %>
+        <%= link_to "Convert", @page, class: "inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+      <% end %>
+    </div>
+  </div>
+
+</div>
+
+
+
+

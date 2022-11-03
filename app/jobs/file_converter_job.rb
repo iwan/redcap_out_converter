@@ -10,9 +10,9 @@ class FileConverterJob < ApplicationJob
   def perform(page)
     begin
       t0 = Time.now
-      reader = ::RedcapExport::CsvReader.new(page, t0)
+      reader = CsvReader.new(page, t0)
       reader.start
-      reader.parse
+      reader.convert
 
     rescue Exception => e
       # puts e.inspect
@@ -25,4 +25,7 @@ class FileConverterJob < ApplicationJob
       reader.feedback.completed!
     end
   end
+
 end
+
+

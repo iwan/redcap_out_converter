@@ -21,6 +21,7 @@ module RedcapOutConverter
 
     # config.autoload_once_paths << "#{Rails.root}/lib"
     config.autoload_paths << "#{Rails.root}/lib"
+    config.autoload_paths << "#{Rails.root}/app/services"
 
     config.active_job.queue_adapter = :sidekiq
     
