@@ -1,5 +1,5 @@
 <div class="mt-0">
-  <%= form_with model: @page do |f| %>
+  <%= form_with model: @page, data: { controller: 'uppy', 'uppy-target': "form" } do |f| %>
     <div class="shadow sm:rounded-md sm:overflow-hidden">
       <div class="px-4 py-5 bg-white space-y-6 sm:p-6">
         <div>
@@ -33,82 +33,11 @@
           </p>
         </div>
 
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Exported file from REDCap</label>
-          <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:bg-gray-50 active:bg-gray-100" data-controller="uppy" data-action="click->uppy#selectFile dragover->uppy#dragOver dragleave->uppy#dragLeave dragend->uppy#dragEnd drop->uppy#dropFiles" data-uppy-target="dropZone">
-            <div class="space-y-1 text-center">
-              <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-              <div class="flex text-sm text-gray-600">
-                <p class="click-or-drag" data-uppy-target="clickOrDrag">
-                  Click or drag and drop
-                </p>                
-                <%= f.file_field :original_file, accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv", class: "sr-only", required: true, data: { "uppy-target": "input", "action": "change->uppy#inputChange click->uppy#inputClick" } %>
-              </div>
-              <p class="text-xs text-gray-500">Only CSV files up to 10MB</p>
-              <p class="text-xs text-indigo-400" data-uppy-target="filenames"></p>
-            </div>
-          </div>
-        </div>
-
-
-        <% if true %>
-          <%= f.hidden_field :patient_col %>
-          <%= f.hidden_field :event_col %>
-          <%= f.hidden_field :base_traits_identifier %>
-          <%= f.hidden_field :baseline_intervals %>
-          <%= f.hidden_field :follow_up_intervals %>
-
-        <% else %>
-        <div>
-          <h3 class="text-lg leading-6 font-medium text-gray-900">Options</h3>
-          <p class="mt-1 max-w-2xl text-sm text-gray-500">Remember that columns indexes start at one.</p>
-        </div>
-
-        <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
-          <%= f.label :patient_col, class: "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2" %>
-          <div class="mt-1 sm:mt-0 sm:col-span-2">
-            <%= f.number_field :patient_col, class: "max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md" %>
-            <p class="mt-2 text-sm text-gray-500">Which column defines the patient or participant ID column?</p>
-          </div>
-        </div>
-
-        <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
-          <%= f.label :event_col, class: "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2" %>
-          <div class="mt-1 sm:mt-0 sm:col-span-2">
-            <%= f.number_field :event_col, class: "max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md" %>
-            <p class="mt-2 text-sm text-gray-500">Which column defines the event ie the 'baseline' or 'follow up' label?</p>
-          </div>
-        </div>
-
-        <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
-          <%= f.label :base_traits_identifier, class: "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2" %>
-          <div class="mt-1 sm:mt-0 sm:col-span-2">
-            <%= f.text_field :base_traits_identifier, class: "max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md" %>
-            <p class="mt-2 text-sm text-gray-500">What name identifies the 'baseline' event? (if necessary leave blank)</p>
-          </div>
-        </div>
+        <%= render partial: 'previous_file_upload_area', locals: { f: f } %>
+        <%# render partial: 'file_upload_area', locals: { f: f } %>
 
 
 
-        <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
-          <%= f.label :baseline_intervals, class: "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2" %>
-          <div class="mt-1 sm:mt-0 sm:col-span-2">
-            <%= f.text_field :baseline_intervals, class: "max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md" %>
-            <p class="mt-2 text-sm text-gray-500">Specifies the list of column indexes of the baseline. For example <code class="bg-gray-200">2-13</code> or <code class="bg-gray-200">2-8,10,12,13</code> (if necessary leave blank)</p>
-          </div>
-        </div>
-
-        <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
-          <%= f.label :follow_up_intervals, class: "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2" %>
-          <div class="mt-1 sm:mt-0 sm:col-span-2">
-            <%= f.text_field :follow_up_intervals, class: "max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md" %>
-            <p class="mt-2 text-sm text-gray-500">Specifies the list of column indexes of the baseline. For example <code class="bg-gray-200">14-29</code> or <code class="bg-gray-200">14,15-30</code></p>
-          </div>
-        </div>
-        <% end %>
       </div>
       <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
         <%= f.submit "Load file", class: "inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>

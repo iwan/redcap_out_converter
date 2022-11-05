@@ -1,10 +1,9 @@
-import Rails from "@rails/ujs";
 import { Controller } from "@hotwired/stimulus"
 
 // Connects to data-controller="uppy"
 // It has nothing to do with the Uppy JS library
 export default class extends Controller {
-  static targets = [ "filenames", "input", "dropZone", "clickOrDrag", "form" ]
+  static targets = [ "filenames", "input", "dropZone", "clickOrDrag" ]
 
   selectFile(e) {
     // console.log('click');
@@ -12,9 +11,7 @@ export default class extends Controller {
   }
 
   inputChange(ev) {
-    this.updateFilename(this.inputTarget.files)
-    // one file has been selected
-    this.submit()
+    this.updateFilenames(this.inputTarget.files)
   }
 
   dragOver(e) {
@@ -32,12 +29,8 @@ export default class extends Controller {
 
   dropFiles(e) {
     e.preventDefault()
-    this.updateFilename(e.dataTransfer.files)
-    this.restoreDropZoneAspect()
-
-    this.inputTarget.files = e.dataTransfer.files // only the last will be loaded
-    // one file has been dropped
-    this.submit()
+    this.updateFilenames(e.dataTransfer.files)
+    this.restoreDropZoneAspect()  
   }
 
   restoreDropZoneAspect() {
@@ -59,20 +52,5 @@ export default class extends Controller {
       str = [...files].map(file => file.name).join(", ")
     }
     this.filenamesTarget.innerHTML = str
-  }
-
-  updateFilename(files) {
-    let str = ""
-    if (files.length) {
-      str = files.item(files.length-1).name
-    } else {
-      str = ""
-    }
-    this.filenamesTarget.innerHTML = str
-  }
-
-
-  submit() {
-    Rails.fire(this.formTarget, 'submit')
   }
 }

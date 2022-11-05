@@ -3,7 +3,7 @@ import { Controller } from "@hotwired/stimulus"
 // Connects to data-controller="annotable"
 export default class extends Controller {
   connect() {
-    console.log('Connecting annotable!');
+    // console.log('Connecting annotable!');
     this.setPatientCol()
     this.setEventCol()
     this.setBlInterval()
