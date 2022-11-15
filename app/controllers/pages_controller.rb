@@ -53,7 +53,6 @@ class PagesController < ApplicationController
     @page = Page.find_by id: params[:id]
     if @page && session[:page_ids]&.include?(@page.id)
       FileConverterJob.set(wait: 1.second).perform_later(@page) # if @page.completed_at.nil?
-      puts "=====><<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
     else
       redirect_to new_page_path, alert: "Sorry the page was not found."
     end

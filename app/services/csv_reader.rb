@@ -37,8 +37,10 @@ require 'charlock_holmes'
       @fu_no            = @follow_up_labels.size
       @traits_no        = @bl_no + @fu_no
 
-      @patients     = @content.keys.map{|row| row[@patient_column_idx]}.uniq.sort # list of patients
-      @events       = @content.keys.map{|row| row[@event_column_idx]}.uniq - [@base_traits_id] # list of events names except baseline
+      # @patients     = @content.keys.map{|row| row[@patient_column_idx]}.uniq.sort # list of patients
+      @patients     = @content.keys.map{|row| row[0]}.uniq.sort # list of patients
+      # @events       = @content.keys.map{|row| row[@event_column_idx]}.uniq - [@base_traits_id] # list of events names except baseline
+      @events       = (@content.keys.map{|row| row[1]}.uniq - [@base_traits_id]).sort # list of events names except baseline
     end
 
 
@@ -84,7 +86,7 @@ require 'charlock_holmes'
 
     #  m="=\"4r55t778\"".match(/^="(.*)"$/); if m; m[1]; else; s; end
 
-    # reader = CsvReader.new(page=Page.find(20))
+    # reader = CsvReader.new(page=Page.find(27)) ; reader.start ; reader.convert
 
     def convert(options={}, &block)
       row_sep = options.fetch(:rows_sep, RowsSeparator::LF.char)
@@ -93,8 +95,6 @@ require 'charlock_holmes'
       sleep(0.8)
       @feedback.info(@t0, "Parsing...")
       sleep(1.2)
-
-      # byebug
 
       str = CSV.generate(row_sep: row_sep, col_sep: col_sep) do |csv|
         # --- header
@@ -110,6 +110,7 @@ require 'charlock_holmes'
           row = []
           row << patient
           # baseline
+
           row += @content.fetch([patient, @base_traits_id], Array.new(@traits_no, nil)).values_at(*@base_intervals) if @base_traits_id
           # followups
           @events.each do |fu|
