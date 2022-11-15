@@ -5,10 +5,8 @@ require 'charlock_holmes'
 # module RedcapExport
 
   class CsvReader
-    attr_reader :feedback
+    attr_reader :feedback, :content, :header
 
-    ROWS_SEP = { cr: "\r", lf: "\n", crlf: "\r\n" }
-    COLS_SEP = { tab: "\t", comma: ",", semicolon: ";" }
 
     def initialize(object, t0=Time.now)
       @object   = object
@@ -61,10 +59,11 @@ require 'charlock_holmes'
       begin
         result = :ok
         content = CSV.parse(utf8_encoded_content, **(options.transform_values(&:char)))
-        table   = content.first(first)
+        table   = content.first(first).map{|row| row.map{|cell| (m=cell&.match(/^="(.*)"$/)).nil? ? cell : m[1]}}
         max_col = table.map(&:size).max
 
       rescue StandardError => e
+        puts e
         result = :parsing_error
         table = [[]]
         max_col = nil
@@ -72,6 +71,7 @@ require 'charlock_holmes'
 
       { result: result, max_col: max_col, table: table, content_encoding: encoding, rows_separator: options[:row_sep], columns_separator: options[:col_sep] }
     end
+
 
     def auto_detect(encoding=nil)
       @file_content ||= @object.original_file.download
@@ -82,14 +82,19 @@ require 'charlock_holmes'
       [utf8_encoded_content, encoding, detect_rows_and_columns_separators(utf8_encoded_content)] # for example: { row_sep: RowsSeparator::CR, col_sep: ColumnsSeparator::Tab }
     end
 
+    #  m="=\"4r55t778\"".match(/^="(.*)"$/); if m; m[1]; else; s; end
+
+    # reader = CsvReader.new(page=Page.find(20))
 
     def convert(options={}, &block)
       row_sep = options.fetch(:rows_sep, RowsSeparator::LF.char)
       col_sep = options.fetch(:cols_sep, ColumnsSeparator::Tab.char)
+
       sleep(0.8)
       @feedback.info(@t0, "Parsing...")
       sleep(1.2)
 
+      byebug
 
       str = CSV.generate(row_sep: row_sep, col_sep: col_sep) do |csv|
         # --- header

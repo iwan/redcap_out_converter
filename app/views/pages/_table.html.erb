@@ -10,7 +10,7 @@
                 <tr>
                   <% @reader[:max_col].times do |i| %>
                     <% if c=@header[i] %>
-                      <th scope="col" class="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6" data-col="<%= i+1 %>">
+                      <th scope="col" class="whitespace-nowrap py-3.5 pl-4 pr-3 text-center text-sm font-semibold text-gray-900 sm:pl-6" data-col="<%= i+1 %>">
                         <%= c %>    
                       </th>
                     <% else %>
@@ -31,11 +31,11 @@
                   <tr>
                     <% @reader[:max_col].times do |i| %>
                       <% if c=row[i] %>
-                        <td class="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-500 sm:pl-6" data-col="<%= i+1 %>">
+                        <td class="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-center text-gray-500 border-r-2 border-gray-50 sm:pl-6" data-col="<%= i+1 %>">
                           <%= c %>
                         </td>
                       <% else %>
-                        <td data-col="<%= i+1 %>">&nbsp;</td>
+                        <td data-col="<%= i+1 %>" class="border-r-2 border-gray-50">&nbsp;</td>
                       <% end %>
                     <% end %>
                   </tr>
