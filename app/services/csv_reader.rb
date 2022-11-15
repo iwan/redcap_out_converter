@@ -94,7 +94,7 @@ require 'charlock_holmes'
       @feedback.info(@t0, "Parsing...")
       sleep(1.2)
 
-      byebug
+      # byebug
 
       str = CSV.generate(row_sep: row_sep, col_sep: col_sep) do |csv|
         # --- header
